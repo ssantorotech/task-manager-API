@@ -1,5 +1,6 @@
 
 from fastapi import APIRouter, HTTPException, Query
+
 from typing import Annotated
 from app.schemas import (
     TodoCreate,
@@ -14,27 +15,37 @@ from app import database
 
 router = APIRouter(prefix='/todos', tags=['todos'])
 
-@router.get("/", response_model=list[TodoResponse], status_code=200) 
-def get_todos():
-    todos = list(database.TODOS_DB.values())
-    return todos
 
 @router.get("", response_model=list[TodoResponse], status_code=200)
-def get_filtered_todos(
+def get_todos(
     completed: bool | None = None,
     q: str | None = None,
-    skip: int = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
-    priorita: Priorita | None = None
+    priorita: Priorita | None = None,
+    skip: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20
 ):
     todos = list(database.TODOS_DB.values())
-    
-    if (completed is not None):
-        todos = [todo for todo in todos if todo['completed'] == completed]
-    if (q is not None):
-        todos = [todo for todo in todos if q.lower() in todo['title'].lower()]
 
-    todos = todos[skip: skip + limit]
+    if completed is not None:
+        todos = [
+            todo for todo in todos
+            if todo["completed"] == completed
+        ]
+
+    if q is not None:
+        todos = [
+            todo for todo in todos
+            if q.lower() in todo["title"].lower()
+        ]
+
+    if priorita is not None:
+        todos = [
+            todo for todo in todos
+            if todo["priorita"] == priorita
+        ]
+
+    todos = todos[skip:skip + limit]
+
     return todos
 
 
@@ -69,26 +80,26 @@ def get_todo(todo_id: int):
 
 
 
-@router.post("", status_code=201)
+@router.post("", response_model=TodoResponse, status_code=201)
 def add_todo(todo: TodoCreate):
-   new_todo = {'id': next(database.ID), 'completed': False, **todo.model_dump()}
+   new_todo = {'id': next(database.TODOS_ID), 'completed': False, **todo.model_dump()}
    database.TODOS_DB[new_todo['id']] = new_todo
    return new_todo
 
 
-@router.put("/{todo_id}")
+@router.put("/{todo_id}", response_model=TodoResponse)
 def update_todo(todo_id: int, todo: TodoReplace):
     if (todo_id not in database.TODOS_DB):
         raise HTTPException(status_code=404, detail="Todo not found")
     database.TODOS_DB[todo_id] = {'id': todo_id, **todo.model_dump()}
     return database.TODOS_DB[todo_id]
 
-@router.patch("/{todo_id}")
+@router.patch("/{todo_id}", response_model=TodoResponse )
 def partial_update_todo(todo_id: int, todo: TodoPatch):
     if (todo_id not in database.TODOS_DB):
         raise HTTPException(status_code=404, detail="Todo not found")
     item = database.TODOS_DB[todo_id]
-    cambi = todo.model_dump(exclude_unset=True)
+    cambi = todo.model_dump(exclude_unset=True, exclude_none=True)
     item.update(cambi)
     return item
 
