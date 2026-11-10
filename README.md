@@ -1,41 +1,122 @@
-# Todo API
+# Task Manager API
 
-Una REST API sviluppata con **Python e FastAPI** per gestire una lista di attività (Todo).
+REST API per la gestione di attività (Todo) e utenti, sviluppata con Python e FastAPI.
 
-Il progetto permette di creare, leggere, modificare, eliminare e filtrare le attività. Include validazione dei dati con Pydantic e test automatici con Pytest.
+Il progetto nasce come esercizio pratico per approfondire lo sviluppo backend, la progettazione di API REST, la validazione dei dati con Pydantic e la gestione delle operazioni CRUD.
 
 ## Tecnologie utilizzate
 
-- Python
+- Python 3.13
 - FastAPI
 - Pydantic
+- Uvicorn
+- Argon2 tramite `pwdlib`
 - Pytest
 - HTTPX
-- Uvicorn
+
+## Funzionalità implementate
+
+### Todo
+
+- Creazione di un Todo.
+- Recupero di tutti i Todo.
+- Recupero di un singolo Todo tramite ID.
+- Modifica completa tramite PUT.
+- Modifica parziale tramite PATCH.
+- Eliminazione tramite DELETE.
+- Filtri per stato di completamento.
+- Ricerca per titolo.
+- Filtro per priorità.
+- Paginazione tramite `skip` e `limit`.
+- Statistiche sui Todo.
+
+### Utenti
+
+- Registrazione di un nuovo utente.
+- Recupero dell'elenco degli utenti.
+- Controllo degli username duplicati.
+- Controllo delle email duplicate.
+- Hashing delle password tramite Argon2.
+- Assegnazione automatica del ruolo iniziale `user`.
+- Generazione automatica della data di iscrizione.
+
+## Endpoint API
+
+### Todo
+
+| Metodo | Endpoint | Descrizione |
+|---|---|---|
+| GET | `/todos` | Recupera i Todo |
+| GET | `/todos/{todo_id}` | Recupera un Todo |
+| GET | `/todos/stats` | Recupera le statistiche |
+| POST | `/todos` | Crea un Todo |
+| PUT | `/todos/{todo_id}` | Sostituisce un Todo |
+| PATCH | `/todos/{todo_id}` | Modifica parzialmente un Todo |
+| DELETE | `/todos/{todo_id}` | Elimina un Todo |
+
+### Filtri Todo
+
+L'endpoint `GET /todos` supporta i seguenti parametri:
+
+| Parametro | Tipo | Descrizione |
+|---|---|---|
+| `completed` | Boolean | Filtra per stato di completamento |
+| `q` | String | Cerca una parola nel titolo |
+| `priorita` | Enum | Filtra per priorità |
+| `skip` | Integer | Numero di risultati da saltare |
+| `limit` | Integer | Numero massimo di risultati |
+
+Esempi:
+
+```text
+GET /todos?completed=false
+GET /todos?q=studio
+GET /todos?priorita=alta
+GET /todos?skip=10&limit=5
+GET /todos?completed=false&priorita=alta
+```
+
+Priorità disponibili:
+
+- `bassa`
+- `media`
+- `alta`
+
+### Utenti
+
+| Metodo | Endpoint | Descrizione |
+|---|---|---|
+| GET | `/users/` | Recupera gli utenti |
+| POST | `/users/` | Registra un nuovo utente |
 
 ## Struttura del progetto
 
 ```text
 task-manager-API/
+│
 ├── app/
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   └── todos.py
 │   ├── __init__.py
-│   ├── database.py
 │   ├── main.py
-│   └── schemas.py
+│   ├── database.py
+│   ├── schemas.py
+│   │
+│   └── routes/
+│       ├── __init__.py
+│       ├── todos.py
+│       └── users.py
+│
 ├── tests/
 │   └── test_todo.py
-├── client.py
-├── pyproject.toml
+│
 ├── requirements.txt
+├── pyproject.toml
+├── uv.lock
 └── README.md
 ```
 
 ## Installazione
 
-Clona il repository:
+Clona la repository:
 
 ```bash
 git clone https://github.com/ssantorotech/task-manager-API.git
@@ -52,6 +133,12 @@ source .venv/bin/activate
 Installa le dipendenze:
 
 ```bash
+uv sync
+```
+
+In alternativa, se utilizzi `requirements.txt`:
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -60,90 +147,48 @@ pip install -r requirements.txt
 Avvia il server con:
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 L'API sarà disponibile all'indirizzo:
 
 ```text
-http://localhost:8000
+http://127.0.0.1:8000
 ```
 
 Documentazione interattiva:
 
-```text
-http://localhost:8000/docs
-```
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
 
-## Endpoint
+## Database
 
-| Metodo | Endpoint | Descrizione |
-|---|---|---|
-| GET | `/todos` | Recupera tutte le attività |
-| GET | `/todos?completed=true` | Filtra per stato di completamento |
-| GET | `/todos?q=studio` | Cerca nel titolo |
-| GET | `/todos?priorita=alta` | Filtra per priorità |
-| GET | `/todos?skip=0&limit=20` | Paginazione |
-| GET | `/todos/stats` | Statistiche delle attività |
-| GET | `/todos/{todo_id}` | Recupera una singola attività |
-| POST | `/todos` | Crea una nuova attività |
-| PUT | `/todos/{todo_id}` | Sostituisce un'attività |
-| PATCH | `/todos/{todo_id}` | Modifica parzialmente un'attività |
-| DELETE | `/todos/{todo_id}` | Elimina un'attività |
+Attualmente il progetto utilizza dizionari Python per simulare un database in memoria.
 
-### Esempio di creazione
+I dati vengono persi quando l'applicazione viene riavviata.
 
-Richiesta `POST /todos`:
-
-```json
-{
-    "title": "Studiare Python",
-    "description": "Ripassare FastAPI e Pydantic",
-    "priorita": "alta"
-}
-```
-
-Le priorità disponibili sono:
-
-- `bassa`
-- `media`
-- `alta`
-
-Il campo `completed` viene inizializzato automaticamente a `false`.
+La persistenza tramite SQLite è prevista tra i prossimi sviluppi.
 
 ## Test
 
 Per eseguire i test automatici:
 
 ```bash
-pytest -v
+uv run pytest -v
 ```
 
-Per visualizzare anche gli output dei print:
+La copertura dei test per gli endpoint Todo e User è in fase di sviluppo.
 
-```bash
-pytest -v -s
-```
+## Sviluppi futuri
 
-## Client HTTP
+- [ ] Completare i test automatici per Todo e User.
+- [ ] Implementare PUT, PATCH e DELETE per gli utenti.
+- [ ] Implementare autenticazione e autorizzazione.
+- [ ] Integrare SQLite.
+- [ ] Introdurre SQLAlchemy.
+- [ ] Collegare gli utenti ai rispettivi Todo.
+- [ ] Implementare un frontend con React.
 
-Il progetto include `client.py`, un semplice client realizzato con HTTPX per provare le operazioni principali dell'API.
+---
 
-Avvia prima il server, poi esegui:
-
-```bash
-python client.py
-```
-
-## Database
-
-Attualmente i dati vengono conservati in un database temporaneo in memoria tramite un dizionario Python.
-
-I dati vengono persi quando l'applicazione viene riavviata.
-
-## Possibili sviluppi futuri
-
-- Integrazione con SQLite.
-- Persistenza dei dati.
-- Autenticazione degli utenti.
-- Integrazione con un frontend React.
+Progetto personale a scopo didattico.
