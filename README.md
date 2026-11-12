@@ -1,194 +1,95 @@
-# Task Manager API
+🚀 Task Manager API
 
-REST API per la gestione di attività (Todo) e utenti, sviluppata con Python e FastAPI.
+Un'applicazione robusta e moderna basata su FastAPI per la gestione di attività (To-Do) e utenti, completa di validazione avanzata dei dati, gestione delle priorità, ruoli utente e hashing sicuro delle password.
 
-Il progetto nasce come esercizio pratico per approfondire lo sviluppo backend, la progettazione di API REST, la validazione dei dati con Pydantic e la gestione delle operazioni CRUD.
+🛠️ Tecnologie Utilizzate
 
-## Tecnologie utilizzate
+Python 3.10+
 
-- Python 3.13
-- FastAPI
-- Pydantic
-- Uvicorn
-- Argon2 tramite `pwdlib`
-- Pytest
-- HTTPX
+FastAPI – Framework web moderno e ad alte prestazioni per la creazione di API
 
-## Funzionalità implementate
+Pydantic v2 – Validazione dei dati e gestione degli schemi (EmailStr, SecretStr, Enum)
 
-### Todo
+Pwdlib – Hashing sicuro delle password
 
-- Creazione di un Todo.
-- Recupero di tutti i Todo.
-- Recupero di un singolo Todo tramite ID.
-- Modifica completa tramite PUT.
-- Modifica parziale tramite PATCH.
-- Eliminazione tramite DELETE.
-- Filtri per stato di completamento.
-- Ricerca per titolo.
-- Filtro per priorità.
-- Paginazione tramite `skip` e `limit`.
-- Statistiche sui Todo.
+Pytest & TestClient – Suite di testing automatizzato
 
-### Utenti
+📂 Struttura del Progetto
 
-- Registrazione di un nuovo utente.
-- Recupero dell'elenco degli utenti.
-- Controllo degli username duplicati.
-- Controllo delle email duplicate.
-- Hashing delle password tramite Argon2.
-- Assegnazione automatica del ruolo iniziale `user`.
-- Generazione automatica della data di iscrizione.
-
-## Endpoint API
-
-### Todo
-
-| Metodo | Endpoint | Descrizione |
-|---|---|---|
-| GET | `/todos` | Recupera i Todo |
-| GET | `/todos/{todo_id}` | Recupera un Todo |
-| GET | `/todos/stats` | Recupera le statistiche |
-| POST | `/todos` | Crea un Todo |
-| PUT | `/todos/{todo_id}` | Sostituisce un Todo |
-| PATCH | `/todos/{todo_id}` | Modifica parzialmente un Todo |
-| DELETE | `/todos/{todo_id}` | Elimina un Todo |
-
-### Filtri Todo
-
-L'endpoint `GET /todos` supporta i seguenti parametri:
-
-| Parametro | Tipo | Descrizione |
-|---|---|---|
-| `completed` | Boolean | Filtra per stato di completamento |
-| `q` | String | Cerca una parola nel titolo |
-| `priorita` | Enum | Filtra per priorità |
-| `skip` | Integer | Numero di risultati da saltare |
-| `limit` | Integer | Numero massimo di risultati |
-
-Esempi:
-
-```text
-GET /todos?completed=false
-GET /todos?q=studio
-GET /todos?priorita=alta
-GET /todos?skip=10&limit=5
-GET /todos?completed=false&priorita=alta
-```
-
-Priorità disponibili:
-
-- `bassa`
-- `media`
-- `alta`
-
-### Utenti
-
-| Metodo | Endpoint | Descrizione |
-|---|---|---|
-| GET | `/users/` | Recupera gli utenti |
-| POST | `/users/` | Registra un nuovo utente |
-
-## Struttura del progetto
-
-```text
 task-manager-API/
 │
 ├── app/
 │   ├── __init__.py
-│   ├── main.py
-│   ├── database.py
-│   ├── schemas.py
-│   │
+│   ├── main.py          # Punto di ingresso dell'applicazione FastAPI
+│   ├── database.py      # Database in-memory per la gestione di task e utenti
+│   ├── schemas.py       # Modelli Pydantic ed Enum (Priorita, Ruolo)
 │   └── routes/
-│       ├── __init__.py
-│       ├── todos.py
-│       └── users.py
+│       ├── todos.py     # Endpoint CRUD, filtri e statistiche per i task
+│       └── users.py     # Endpoint per la registrazione e gestione utenti
 │
 ├── tests/
-│   └── test_todo.py
+│   ├── test_todo.py     # Test automatizzati per i task
+│   └── test_user.py     # Test automatizzati per gli utenti
 │
 ├── requirements.txt
-├── pyproject.toml
-├── uv.lock
 └── README.md
-```
 
-## Installazione
 
-Clona la repository:
+⚙️ Installazione e Avvio
 
-```bash
+Clona il repository:
+
 git clone https://github.com/ssantorotech/task-manager-API.git
 cd task-manager-API
-```
+
 
 Crea e attiva un ambiente virtuale:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
+python -m venv venv
+source venv/bin/activate  # Su Windows: venv\Scripts\activate
+
 
 Installa le dipendenze:
 
-```bash
-uv sync
-```
-
-In alternativa, se utilizzi `requirements.txt`:
-
-```bash
 pip install -r requirements.txt
-```
 
-## Avvio dell'applicazione
 
-Avvia il server con:
+Avvia il server di sviluppo:
 
-```bash
-uv run uvicorn app.main:app --reload
-```
+uvicorn app.main:app --reload
 
-L'API sarà disponibile all'indirizzo:
 
-```text
-http://127.0.0.1:8000
-```
+L'API sarà raggiungibile su http://127.0.0.1:8000. Puoi testare gli endpoint tramite la documentazione interattiva su http://127.0.0.1:8000/docs (Swagger UI) oppure /redoc.
 
-Documentazione interattiva:
+🧪 Esecuzione dei Test
 
-- Swagger UI: http://127.0.0.1:8000/docs
-- ReDoc: http://127.0.0.1:8000/redoc
+Per avviare tutti i test di unità e integrazione con pytest:
 
-## Database
+pytest
 
-Attualmente il progetto utilizza dizionari Python per simulare un database in memoria.
 
-I dati vengono persi quando l'applicazione viene riavviata.
+📋 Endpoints Principali
 
-La persistenza tramite SQLite è prevista tra i prossimi sviluppi.
+🔹 Todos (/todos)
 
-## Test
+GET /todos – Restituisce la lista dei task (supporta filtri per completed, ricerca testuale q, priorita e paginazione skip/limit).
 
-Per eseguire i test automatici:
+POST /todos – Crea un nuovo task associando titolo, descrizione e livello di priorità (bassa, media, alta).
 
-```bash
-uv run pytest -v
-```
+GET /todos/stats – Fornisce un riepilogo statistico dei task (totali, completati, da completare e conteggio per priorità).
 
-La copertura dei test per gli endpoint Todo e User è in fase di sviluppo.
+GET /todos/{todo_id} – Recupera i dettagli di un singolo task tramite ID.
 
-## Sviluppi futuri
+PUT /todos/{todo_id} – Sostituisce interamente un task esistente.
 
-- [ ] Completare i test automatici per Todo e User.
-- [ ] Implementare PUT, PATCH e DELETE per gli utenti.
-- [ ] Implementare autenticazione e autorizzazione.
-- [ ] Integrare SQLite.
-- [ ] Introdurre SQLAlchemy.
-- [ ] Collegare gli utenti ai rispettivi Todo.
-- [ ] Implementare un frontend con React.
+PATCH /todos/{todo_id} – Aggiorna parzialmente un task esistente.
 
----
+DELETE /todos/{todo_id} – Elimina un task dal database.
 
-Progetto personale a scopo didattico.
+🔹 Users (/users)
+
+GET /users – Restituisce l'elenco completo degli utenti registrati.
+
+POST /users – Registra un nuovo utente con validazione dell'email, password criptata e controllo sull'unicità di username ed email.
+
+GET /users/{user_id} – Recupera i dettagli di un utente specifico tramite ID.

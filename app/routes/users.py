@@ -15,12 +15,20 @@ password_hash = PasswordHash.recommended()
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.get("/", response_model=list[UserResponse], status_code=200)
-def get_users():
+@router.get("", response_model=list[UserResponse], status_code=200)
+def get_users() -> list[UserResponse]:
     users = list(database.USERS_DB.values())
     return users
 
-@router.post("/", response_model=UserResponse, status_code=201)
+
+@router.get("/{user_id}", response_model = UserResponse, status_code=200)
+def get_user(user_id: int) -> UserResponse:
+    if user_id not in database.USERS_DB:
+        raise HTTPException(status_code=404, detail="Not Found")
+    user = database.USERS_DB[user_id]
+    return user
+
+@router.post("", response_model=UserResponse, status_code=201)
 def add_user(user: UserCreate) -> UserResponse:
 
     for existing_user in database.USERS_DB.values():
